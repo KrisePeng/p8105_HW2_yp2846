@@ -2,4 +2,10 @@
 title: "p8105_HW2_yp2846"
 output: github_document
 ---
+# Problem 1
+
+```{r}
+library(tidyverse)
+# transit_df = read_csv("./p8105_HW2_yp2846/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")
+```
 
