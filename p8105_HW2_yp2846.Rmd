@@ -6,6 +6,96 @@ output: github_document
 
 ```{r}
 library(tidyverse)
-# transit_df = read_csv("./p8105_HW2_yp2846/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")
+transit_df = 
+  read_csv("./NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+           na =c("NA","."," "))|>
+  janitor::clean_names() |>
+  select(
+    line, 
+    station_name, 
+    station_latitude, 
+    station_longitude, 
+    route1:route11, 
+    entry, 
+    vending, 
+    entrance_type, 
+    ada)|>
+  mutate(
+    entry = case_match(
+      entry,
+      "YES" ~ TRUE,
+      "NO" ~ FALSE
+    )
+  )
+  
+dim(transit_df)
+head(transit_df,10)
 ```
+The cleaned subway entrance dataset contains 1868 rows(observations) and 19 columns(variables). 
+
+The variables include subway line and station name, station latitude and longitude, routes served, whether entry is allowed, whether vending is available, entrance type, and ADA compliance. 
+
+I cleaned the variable names using janitor::clean_names(), retained only the variables relevant to the analysis and converted the entry variable from "YES" and "NO" character values to a logical variable with TRUE and FALSE. 
+
+The resulting dataset is not completely tidy because the routes served are stored across multiple columns, from route1 through route11 rather than in a single route variable.
+
+```{r}
+transit_df |> 
+  distinct(line, station_name) |>
+  nrow()
+```
+
+There are `r nrow(distinct(transit_df,line,station_name))` distinct stations.
+
+```{r}
+transit_df |>
+  filter(ada == TRUE)|>
+  distinct(line, station_name) |>
+  nrow()
+```
+
+There are 84 ADA compliant.
+
+```{r}
+transit_df |>
+  filter(
+    vending == "NO") |>
+  summarize(
+    transit_proportion = mean(entry)
+  )
+```
+
+The proportion of station entrances/ exits without vending allow entrance is about 0.3770.
+
+```{r}
+transit_long =
+  transit_df |>
+  pivot_longer(
+    route1:route11,
+    names_to = "route_number",
+    values_to = "route_name",
+    values_drop_na = TRUE,
+    values_transform = as.character
+  )
+
+transit_long |>
+  filter(route_name == "A") |>
+  distinct(line, station_name) |>
+  nrow()
+```
+
+There are 60 distinct stations serve the A train.
+
+```{r}
+transit_long |>
+  filter(
+    route_name == "A",
+    ada == TRUE
+  ) |>
+  distinct(line, station_name) |>
+  nrow()
+```
+
+Of the stations that serve the A train, there are 17 are ADA compliant.
+
 
