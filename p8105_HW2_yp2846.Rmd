@@ -7,7 +7,7 @@ output: github_document
 ```{r}
 library(tidyverse)
 transit_df = 
-  read_csv("./NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+  read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
            na =c("NA","."," "))|>
   janitor::clean_names() |>
   select(
@@ -99,4 +99,77 @@ transit_long |>
 Of the stations that serve the A train, there are 17 are ADA compliant.
 
 # Problem 2
+
+```{r}
+library(readxl)
+```
+
+```{r}
+# Read and clean the Mr. Trash Wheel sheet
+trash_Mr_df =
+  read_excel("./data/202509 Trash Wheel Collection Data.xlsx",
+             sheet = "Mr. Trash Wheel",
+             range = "A2:N709")|>
+  janitor::clean_names()|>
+  mutate(
+    as.integer(round(sports_balls))
+  )|>
+  mutate(
+    year = as.integer(year),
+    trash_wheel = "Mr."
+  )
+# head(trash_df, 5)
+# tail(trash_df, 5)
+dim(trash_Mr_df)
+
+# Read and clean the Professor Trash Wheel sheet
+trash_professor_df =
+  read_excel("./data/202509 Trash Wheel Collection Data.xlsx",
+             sheet = "Professor Trash Wheel",
+             range = "A2:M134")|>
+  janitor::clean_names()|>
+  mutate(
+    year = as.integer(year),
+    trash_wheel = "Professor"
+  )
+# head(trash_professor_df, 5)
+# tail(trash_professor_df, 5)
+dim(trash_professor_df)
+
+# Read and clean the Gwynns Falls Trash Wheel sheet
+trash_Gwynns_df =
+  read_excel("./data/202509 Trash Wheel Collection Data.xlsx",
+             sheet = "Gwynns Falls Trash Wheel",
+             range = "A2:L351")|>
+  janitor::clean_names()|>
+  mutate(
+    year = as.integer(year),
+    trash_wheel = "Gwynns"
+  )
+# head(trash_Gwynns_df, 5)
+# tail(trash_Gwynns_df, 5)
+dim(trash_Gwynns_df)
+```
+
+```{r}
+trash_combine = 
+  bind_rows(
+    trash_Mr_df,
+    trash_professor_df,
+    trash_Gwynns_df
+  )
+# head(trash_combine,5)
+# tail(trash_combine,5)
+# dim(trash_combine)
+```
+
+There are `r nrow(trash_combine)` rows and `r ncol(trash_combine)` columns in resulting dataset of sheet "Mr. Trash Wheel","Professor Trash Wheel" and "Gwynns Falls Trash Wheel".
+
+Key variables are `r colnames(trash_combine)`.
+
+The total weight of trash collected by Professor Trash Wheel is `r sum(trash_professor_df$weight_tons, na.rm=TRUE)`.
+
+The total number of igarette butts collected by Gwynnda in June of 2022 is `r trash_Gwynns_df |> filter(month == "June" & year == 2022) |> summarize( sum(cigarette_butts, na.rm=TRUE))|>pull()|>format(scientific = FALSE)`. 
+
+
 
