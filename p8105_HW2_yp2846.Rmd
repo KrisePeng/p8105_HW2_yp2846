@@ -121,7 +121,9 @@ trash_Mr_df =
 # head(trash_df, 5)
 # tail(trash_df, 5)
 dim(trash_Mr_df)
+```
 
+```{r}
 # Read and clean the Professor Trash Wheel sheet
 trash_professor_df =
   read_excel("./data/202509 Trash Wheel Collection Data.xlsx",
@@ -135,7 +137,9 @@ trash_professor_df =
 # head(trash_professor_df, 5)
 # tail(trash_professor_df, 5)
 dim(trash_professor_df)
+```
 
+```{r}
 # Read and clean the Gwynns Falls Trash Wheel sheet
 trash_Gwynns_df =
   read_excel("./data/202509 Trash Wheel Collection Data.xlsx",
@@ -171,5 +175,76 @@ The total weight of trash collected by Professor Trash Wheel is `r sum(trash_pro
 
 The total number of igarette butts collected by Gwynnda in June of 2022 is `r trash_Gwynns_df |> filter(month == "June" & year == 2022) |> summarize( sum(cigarette_butts, na.rm=TRUE))|>pull()|>format(scientific = FALSE)`. 
 
+# Problem 3
+```{r}
+baseline_df =
+  read_csv("./data/data_mci/MCI_baseline.csv",
+                        skip = 1,
+                        na = c("NA"," ","."))|>
+  janitor::clean_names()|>
+  mutate(
+    sex = recode(
+      sex,
+      '0' = "Female",
+      '1' = "Male"
+    ),
+    apoe4 = recode(
+      apoe4,
+      '0' = "APOE4 non-carrier",
+      '1' = "APOE4 carrier"
+    )
+  )
+head(baseline_df,5)
+tail(baseline_df,5)
+
+
+
+baseline_df =
+  read_csv("./data/data_mci/MCI_baseline.csv",
+                        skip = 1,
+                        na = c("NA"," ","."))|>
+  janitor::clean_names()
+head(baseline_df)
+```
+
+```{r}
+baseline_df |>
+  filter(is.na(age_at_onset)| age_at_onset > current_age)
+```
+
+```{r}
+baseline_df |>
+  summarize(
+    n_participants = n(),
+    n_mci = sum(!is.na(age_at_onset)),
+    mean_age = mean(age_at_onset),
+    proportion_female =sum(sex=="Female" & apoe4 == "APOE4 carrier")/sum(sex=="Female") 
+  )
+```
+
+
+
+The variables include `r colnames(baseline_df)`. 
+
+I cleaned the variable names using janitor::clean_names(), retained only the variables relevant to the analysis. 
+I converted the sex variable from "0" and "1" double values to a character variable with "Female" and "Male". 
+I also converted apoe4 variable from "0" and "1" double values to character variable with "APOE4 non-carrier" and "APOE4 carrier".
+
+
+
+
+```{r}
+amyloid_df =
+  read_csv("./data/data_mci/mci_baseline.csv",
+                        skip = 1,
+                        na = c("NA"," ","."))|>
+  janitor::clean_names()|>
+  mutate(
+    sex = as.logical(sex),
+    apoe4 = as.logical(apoe4)
+  )
+head(amyloid_df,5)
+tail(amyloid_df,5)
+```
 
 
