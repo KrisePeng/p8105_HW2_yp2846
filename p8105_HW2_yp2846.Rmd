@@ -31,7 +31,7 @@ transit_df =
 dim(transit_df)
 head(transit_df,10)
 ```
-The cleaned subway entrance dataset contains 1868 rows(observations) and 19 columns(variables). 
+The cleaned subway entrance dataset contains `r nrow(transit_df)` rows(observations) and `19`r ncol(transit_df)` columns(variables). 
 
 The variables include subway line and station name, station latitude and longitude, routes served, whether entry is allowed, whether vending is available, entrance type, and ADA compliance. 
 
@@ -54,7 +54,7 @@ transit_df |>
   nrow()
 ```
 
-There are 84 ADA compliant.
+There are 84 ADA compliant stations.
 
 ```{r}
 transit_df |>
@@ -65,7 +65,7 @@ transit_df |>
   )
 ```
 
-The proportion of station entrances/ exits without vending allow entrance is about 0.3770.
+The proportion of station entrances/exits without vending that allow entrance is about 0.3770.
 
 ```{r}
 transit_long =
@@ -84,7 +84,7 @@ transit_long |>
   nrow()
 ```
 
-There are 60 distinct stations serve the A train.
+There are 60 distinct stations that serve the A train.
 
 ```{r}
 transit_long |>
@@ -96,7 +96,7 @@ transit_long |>
   nrow()
 ```
 
-Of the stations that serve the A train, there are 17 are ADA compliant.
+Of the stations that serve the A train, 17 are ADA compliant.
 
 # Problem 2
 
@@ -107,52 +107,65 @@ library(readxl)
 ```{r}
 # Read and clean the Mr. Trash Wheel sheet
 trash_Mr_df =
-  read_excel("./data/202509 Trash Wheel Collection Data.xlsx",
-             sheet = "Mr. Trash Wheel",
-             range = "A2:N709")|>
-  janitor::clean_names()|>
-  mutate(
-    as.integer(round(sports_balls))
+  read_excel(
+    "./data/202610 Trash Wheel Collection Data.xlsx",
+    sheet = "Mr. Trash Wheel",
+    range = "A2:N742"
   )|>
+  janitor::clean_names()|>
+  filter(!is.na(dumpster))|>
   mutate(
+    sports_balls = as.integer(round(sports_balls)),
     year = as.integer(year),
     trash_wheel = "Mr."
   )
-# head(trash_df, 5)
-# tail(trash_df, 5)
+# head(trash_Mr_df, 5)
+# tail(trash_Mr_df, 5)
 dim(trash_Mr_df)
 ```
 
 ```{r}
 # Read and clean the Professor Trash Wheel sheet
 trash_professor_df =
-  read_excel("./data/202509 Trash Wheel Collection Data.xlsx",
-             sheet = "Professor Trash Wheel",
-             range = "A2:M134")|>
+  read_excel(
+    "./data/202610 Trash Wheel Collection Data.xlsx",
+    sheet = "Professor Trash Wheel",
+    range = "A2:M139"
+  )|>
   janitor::clean_names()|>
+  drop_na(dumpster) |>
   mutate(
     year = as.integer(year),
+# Treat the non-numeric entry "dive" in plastic_bottles as missing
+    plastic_bottles = na_if(plastic_bottles, "dive"),
+    plastic_bottles = as.double(plastic_bottles),
     trash_wheel = "Professor"
   )
+
+# unique(trash_professor_df$plastic_bottles)
+# trash_professor_df |>
+#   filter(plastic_bottles == "dive") |>
+#   select(everything())
 # head(trash_professor_df, 5)
 # tail(trash_professor_df, 5)
 dim(trash_professor_df)
 ```
 
 ```{r}
-# Read and clean the Gwynns Falls Trash Wheel sheet
-trash_Gwynns_df =
-  read_excel("./data/202509 Trash Wheel Collection Data.xlsx",
-             sheet = "Gwynns Falls Trash Wheel",
-             range = "A2:L351")|>
+# Read and clean the Gwynnda the Good Wheel of the W sheet
+trash_Gwynnda_df =
+  read_excel("./data/202610 Trash Wheel Collection Data.xlsx",
+             sheet = "Gwynnda the Good Wheel of the W",
+             range = "A2:L394")|>
   janitor::clean_names()|>
+  drop_na(dumpster) |>
   mutate(
     year = as.integer(year),
-    trash_wheel = "Gwynns"
+    trash_wheel = "Gwynnda"
   )
 # head(trash_Gwynns_df, 5)
 # tail(trash_Gwynns_df, 5)
-dim(trash_Gwynns_df)
+dim(trash_Gwynnda_df)
 ```
 
 ```{r}
@@ -160,20 +173,21 @@ trash_combine =
   bind_rows(
     trash_Mr_df,
     trash_professor_df,
-    trash_Gwynns_df
+    trash_Gwynnda_df
   )
 # head(trash_combine,5)
 # tail(trash_combine,5)
 # dim(trash_combine)
 ```
 
-There are `r nrow(trash_combine)` rows and `r ncol(trash_combine)` columns in resulting dataset of sheet "Mr. Trash Wheel","Professor Trash Wheel" and "Gwynns Falls Trash Wheel".
+There are `r nrow(trash_combine)` rows and `r ncol(trash_combine)` columns in resulting dataset.
+It combines data from Mr. Trash Wheel, Professor Trash Wheel, and Gwynnda.
 
-Key variables are `r colnames(trash_combine)`.
+Key variables include `r colnames(trash_combine)`.
 
 The total weight of trash collected by Professor Trash Wheel is `r sum(trash_professor_df$weight_tons, na.rm=TRUE)`.
 
-The total number of igarette butts collected by Gwynnda in June of 2022 is `r trash_Gwynns_df |> filter(month == "June" & year == 2022) |> summarize( sum(cigarette_butts, na.rm=TRUE))|>pull()|>format(scientific = FALSE)`. 
+The total number of cigarette butts collected by Gwynnda in June of 2022 is `r trash_Gwynnda_df |> filter(month == "June" & year == 2022) |> summarize( sum(cigarette_butts, na.rm=TRUE))|>pull()|>format(scientific = FALSE)`. 
 
 # Problem 3
 ```{r}
@@ -196,20 +210,12 @@ baseline_df =
   )
 head(baseline_df,5)
 tail(baseline_df,5)
-
-
-
-baseline_df =
-  read_csv("./data/data_mci/MCI_baseline.csv",
-                        skip = 1,
-                        na = c("NA"," ","."))|>
-  janitor::clean_names()
-head(baseline_df)
 ```
 
 ```{r}
-baseline_df |>
+baseline_df = baseline_df |>
   filter(is.na(age_at_onset)| age_at_onset > current_age)
+baseline_df
 ```
 
 ```{r}
@@ -217,34 +223,88 @@ baseline_df |>
   summarize(
     n_participants = n(),
     n_mci = sum(!is.na(age_at_onset)),
-    mean_age = mean(age_at_onset),
-    proportion_female =sum(sex=="Female" & apoe4 == "APOE4 carrier")/sum(sex=="Female") 
+    mean_age = mean(current_age),
+    proportion_female_apoe4 = sum(sex=="Female" & apoe4 == "APOE4 carrier")/sum(sex=="Female") 
   )
 ```
 
-
+The baseline demographic dataset required some cleaning during import because the first row of the original CSV contained variable descriptions rather than variable names. I therefore skipped the first row when importing the data and treated "." as a missing value during import.
 
 The variables include `r colnames(baseline_df)`. 
 
-I cleaned the variable names using janitor::clean_names(), retained only the variables relevant to the analysis. 
-I converted the sex variable from "0" and "1" double values to a character variable with "Female" and "Male". 
-I also converted apoe4 variable from "0" and "1" double values to character variable with "APOE4 non-carrier" and "APOE4 carrier".
+I cleaned the variable names using janitor::clean_names() and recoded the sex and APOE4 variables into descriptive categorical variables. I converted the sex variable from numeric values "0" and "1" to a character variable with levels "Female" and "Male". I also converted the apoe4 variable from numeric values "0" and "1" to a character variable with levels "APOE4 non-carrier" and "APOE4 carrier".
 
+Participants whose age at MCI onset was less than or equal to their age at study baseline were removed because they did not satisfy the inclusion criterion of being free of MCI at baseline. Four participants were excluded for this reason.
 
+After applying the inclusion criterion, the baseline dataset contains 479 participants. Of these, 93 developed MCI during follow-up. The average age at study baseline was approximately 65.03 years. Among women in the study, 30% were APOE4 carriers.
 
 
 ```{r}
 amyloid_df =
-  read_csv("./data/data_mci/mci_baseline.csv",
-                        skip = 1,
-                        na = c("NA"," ","."))|>
+  read_csv("./data/data_mci/mci_amyloid.csv",
+           skip = 1,
+           na = c("NA","Na","."," "))|>
   janitor::clean_names()|>
-  mutate(
-    sex = as.logical(sex),
-    apoe4 = as.logical(apoe4)
+   pivot_longer(
+      baseline:time_8,
+      names_to = "time",
+      values_to = "amyloid"
+   )|>
+   mutate(
+    time = case_match(
+      time,
+      "baseline" ~ 0,
+      "time_2" ~ 2,
+      "time_4" ~ 4,
+      "time_6" ~ 6,
+      "time_8" ~ 8
+   )
   )
-head(amyloid_df,5)
-tail(amyloid_df,5)
+# head(amyloid_df,5)
+# tail(amyloid_df,5)
 ```
+The amyloid dataset was originally stored in wide format, with separate columns for measurements at baseline and years 2, 4, 6, and 8. I reshaped the data into long format so that each row represents one participant at one measurement time. I also recoded the time variable as numeric years since baseline. The resulting dataset contains repeated longitudinal amyloid measurements for each participant, so participants may contribute up to five observations over the follow-up period.
 
+```{r}
+baseline_df |>
+  anti_join(
+    amyloid_df,
+    by = c("id" = "study_id")
+  )
+```
+There are 8 participants who appear in the cleaned baseline dataset but not in the amyloid dataset.
 
+```{r}
+amyloid_df |>
+  distinct(study_id) |>
+  anti_join(
+    baseline_df,
+    by = c("study_id" = "id")
+  )
+```
+There are 16 participants appear in the amyloid dataset but not in the cleaned baseline dataset.
+
+This indicates that the two datasets do not contain exactly the same set of participants, so an inner join is appropriate for creating a dataset restricted to participants observed in both datasets.
+
+```{r}
+combined_df =
+  baseline_df |>
+  inner_join(
+    amyloid_df,
+    by = c("id" = "study_id")
+  )
+
+combined_df |>
+  summarize(
+    n_rows = n(),
+    n_participants = n_distinct(id)
+  )
+```
+The combined dataset contains `r nrow(combined_df)` observations from `r n_distinct(combined_df$id)` unique participants who appear in both the cleaned baseline and amyloid datasets. Because the amyloid data are longitudinal, each participant may contribute multiple rows corresponding to different measurement times. The combined dataset includes baseline demographic characteristics, MCI-related information, APOE4 carrier status, measurement time, and amyloid biomarker values.
+
+```{r}
+write_csv(
+  combined_df,
+  "./data/data_mci/mci_complete.csv"
+)
+```
