@@ -8,7 +8,14 @@ output: github_document
 library(tidyverse)
 transit_df = 
   read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
-           na =c("NA","."," "))|>
+           na =c("NA","."," "),
+           col_types = cols(
+             Route8 = col_character(),
+             Route9 = col_character(),
+             Route10 = col_character(),
+             Route11 = col_character()
+           )
+  )|>
   janitor::clean_names() |>
   select(
     line, 
@@ -31,7 +38,7 @@ transit_df =
 dim(transit_df)
 head(transit_df,10)
 ```
-The cleaned subway entrance dataset contains `r nrow(transit_df)` rows(observations) and `19`r ncol(transit_df)` columns(variables). 
+The cleaned subway entrance dataset contains `r nrow(transit_df)` rows(observations) and `r ncol(transit_df)` columns(variables). 
 
 The variables include subway line and station name, station latitude and longitude, routes served, whether entry is allowed, whether vending is available, entrance type, and ADA compliance. 
 
@@ -177,7 +184,7 @@ trash_combine =
   )
 # head(trash_combine,5)
 # tail(trash_combine,5)
-# dim(trash_combine)
+dim(trash_combine)
 ```
 
 There are `r nrow(trash_combine)` rows and `r ncol(trash_combine)` columns in resulting dataset.
@@ -232,11 +239,11 @@ The baseline demographic dataset required some cleaning during import because th
 
 The variables include `r colnames(baseline_df)`. 
 
-I cleaned the variable names using janitor::clean_names() and recoded the sex and APOE4 variables into descriptive categorical variables. I converted the sex variable from numeric values "0" and "1" to a character variable with levels "Female" and "Male". I also converted the apoe4 variable from numeric values "0" and "1" to a character variable with levels "APOE4 non-carrier" and "APOE4 carrier".
+I cleaned the variable names using janitor::clean_names() and recoded the sex and APOE4 variables into descriptive categorical variables. I converted the sex variable from numeric values "0" and "1" to a character variable with values "Female" and "Male". I also converted the apoe4 variable from numeric values "0" and "1" to a character variable with categories "APOE4 non-carrier" and "APOE4 carrier".
 
 Participants whose age at MCI onset was less than or equal to their age at study baseline were removed because they did not satisfy the inclusion criterion of being free of MCI at baseline. Four participants were excluded for this reason.
 
-After applying the inclusion criterion, the baseline dataset contains 479 participants. Of these, 93 developed MCI during follow-up. The average age at study baseline was approximately 65.03 years. Among women in the study, 30% were APOE4 carriers.
+The original baseline dataset contained 483 participants. After applying the inclusion criterion, the baseline dataset contains 479 participants. Of these, 93 developed MCI during follow-up. The average age at study baseline was approximately 65.03 years. Among women in the study, 30% were APOE4 carriers.
 
 
 ```{r}
@@ -263,7 +270,7 @@ amyloid_df =
 # head(amyloid_df,5)
 # tail(amyloid_df,5)
 ```
-The amyloid dataset was originally stored in wide format, with separate columns for measurements at baseline and years 2, 4, 6, and 8. I reshaped the data into long format so that each row represents one participant at one measurement time. I also recoded the time variable as numeric years since baseline. The resulting dataset contains repeated longitudinal amyloid measurements for each participant, so participants may contribute up to five observations over the follow-up period.
+The amyloid dataset was originally stored in wide format, with separate columns for measurements at baseline and years 2, 4, 6, and 8. I used `pivot_longer()` to reshape the data into long format so that each row represents one participant at one measurement time. I also recoded the time variable as numeric years since baseline. The resulting dataset contains repeated longitudinal amyloid measurements for each participant, so participants may contribute up to five observations over the follow-up period. Missing amyloid measurements are retained as NA values in the long-format dataset rather than being removed.
 
 ```{r}
 baseline_df |>
